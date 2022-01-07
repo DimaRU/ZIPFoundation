@@ -28,10 +28,11 @@ extension FileManager {
     ///   - compressionMethod: Indicates the `CompressionMethod` that should be applied.
     ///                        By default, `zipItem` will create uncompressed archives.
     ///   - progress: A progress object that can be used to track or cancel the zip operation.
+    ///   - forceDate: Set entry modification date in Archive.
     /// - Throws: Throws an error if the source item does not exist or the destination URL is not writable.
     public func zipItem(at sourceURL: URL, to destinationURL: URL,
                         shouldKeepParent: Bool = true, compressionMethod: CompressionMethod = .none,
-                        progress: Progress? = nil) throws {
+                        progress: Progress? = nil, forceDate: Date? = nil) throws {
         let fileManager = FileManager()
         guard fileManager.itemExists(at: sourceURL) else {
             throw CocoaError(.fileReadNoSuchFile, userInfo: [NSFilePathErrorKey: sourceURL.path])
@@ -66,17 +67,17 @@ extension FileManager {
                     let entryProgress = archive.makeProgressForAddingItem(at: itemURL)
                     progress.addChild(entryProgress, withPendingUnitCount: entryProgress.totalUnitCount)
                     try archive.addEntry(with: finalEntryPath, relativeTo: finalBaseURL,
-                                         compressionMethod: compressionMethod, progress: entryProgress)
+                                         compressionMethod: compressionMethod, progress: entryProgress, forceDate: forceDate)
                 } else {
                     try archive.addEntry(with: finalEntryPath, relativeTo: finalBaseURL,
-                                         compressionMethod: compressionMethod)
+                                         compressionMethod: compressionMethod, forceDate: forceDate)
                 }
             }
         } else {
             progress?.totalUnitCount = archive.totalUnitCountForAddingItem(at: sourceURL)
             let baseURL = sourceURL.deletingLastPathComponent()
             try archive.addEntry(with: sourceURL.lastPathComponent, relativeTo: baseURL,
-                                 compressionMethod: compressionMethod, progress: progress)
+                                 compressionMethod: compressionMethod, progress: progress, forceDate: forceDate)
         }
     }
 

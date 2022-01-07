@@ -28,14 +28,15 @@ extension Archive {
     ///                        By default, no compression will be applied.
     ///   - bufferSize: The maximum size of the write buffer and the compression buffer (if needed).
     ///   - progress: A progress object that can be used to track or cancel the add operation.
+    ///   - forceDate: Set entry modification date in Archive.
     /// - Throws: An error if the source file cannot be read or the receiver is not writable.
     public func addEntry(with path: String, relativeTo baseURL: URL,
                          compressionMethod: CompressionMethod = .none,
-                         bufferSize: Int = defaultWriteChunkSize, progress: Progress? = nil) throws {
+                         bufferSize: Int = defaultWriteChunkSize, progress: Progress? = nil, forceDate: Date? = nil) throws {
         let fileURL = baseURL.appendingPathComponent(path)
 
         try self.addEntry(with: path, fileURL: fileURL, compressionMethod: compressionMethod,
-                          bufferSize: bufferSize, progress: progress)
+                          bufferSize: bufferSize, progress: progress, forceDate: forceDate)
     }
 
     /// Write files, directories or symlinks to the receiver.
@@ -47,9 +48,10 @@ extension Archive {
     ///                        By default, no compression will be applied.
     ///   - bufferSize: The maximum size of the write buffer and the compression buffer (if needed).
     ///   - progress: A progress object that can be used to track or cancel the add operation.
+    ///   - forceDate: Set entry modification date in Archive.
     /// - Throws: An error if the source file cannot be read or the receiver is not writable.
     public func addEntry(with path: String, fileURL: URL, compressionMethod: CompressionMethod = .none,
-                         bufferSize: Int = defaultWriteChunkSize, progress: Progress? = nil) throws {
+                         bufferSize: Int = defaultWriteChunkSize, progress: Progress? = nil, forceDate: Date? = nil) throws {
         let fileManager = FileManager()
         guard fileManager.itemExists(at: fileURL) else {
             throw CocoaError(.fileReadNoSuchFile, userInfo: [NSFilePathErrorKey: fileURL.path])
@@ -59,7 +61,7 @@ extension Archive {
         guard type == .symlink || fileManager.isReadableFile(atPath: fileURL.path) else {
             throw CocoaError(.fileReadNoPermission, userInfo: [NSFilePathErrorKey: url.path])
         }
-        let modDate = try FileManager.fileModificationDateTimeForItem(at: fileURL)
+        let modDate = try forceDate ?? FileManager.fileModificationDateTimeForItem(at: fileURL)
         let uncompressedSize = type == .directory ? 0 : try FileManager.fileSizeForItem(at: fileURL)
         let permissions = try FileManager.permissionsForItem(at: fileURL)
         var provider: Provider
