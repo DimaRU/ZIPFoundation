@@ -40,7 +40,7 @@ extension Archive {
         #endif
     }
 
-    static func makeBackingConfiguration(for url: URL, mode: AccessMode)
+    static func makeBackingConfiguration(for url: URL, mode: AccessMode, zipFileCommentData: Data = Data())
     -> BackingConfiguration? {
         let fileManager = FileManager()
         switch mode {
@@ -59,8 +59,8 @@ extension Archive {
                                                                           totalNumberOfEntriesInCentralDirectory: 0,
                                                                           sizeOfCentralDirectory: 0,
                                                                           offsetToStartOfCentralDirectory: 0,
-                                                                          zipFileCommentLength: 0,
-                                                                          zipFileCommentData: Data())
+                                                                          zipFileCommentLength: UInt16(zipFileCommentData.count),
+                                                                          zipFileCommentData: zipFileCommentData)
             do {
                 try endOfCentralDirectoryRecord.data.write(to: url, options: .withoutOverwriting)
             } catch { return nil }
@@ -79,7 +79,7 @@ extension Archive {
     }
 
     #if swift(>=5.0)
-    static func makeBackingConfiguration(for data: Data, mode: AccessMode)
+    static func makeBackingConfiguration(for data: Data, mode: AccessMode, zipFileCommentData: Data = Data())
     -> BackingConfiguration? {
         let posixMode: String
         switch mode {
@@ -106,8 +106,8 @@ extension Archive {
                                                                           totalNumberOfEntriesInCentralDirectory: 0,
                                                                           sizeOfCentralDirectory: 0,
                                                                           offsetToStartOfCentralDirectory: 0,
-                                                                          zipFileCommentLength: 0,
-                                                                          zipFileCommentData: Data())
+                                                                          zipFileCommentLength: UInt16(zipFileCommentData.count),
+                                                                          zipFileCommentData: zipFileCommentData)
             _ = endOfCentralDirectoryRecord.data.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) in
                 fwrite(buffer.baseAddress, buffer.count, 1, archiveFile) // Errors handled during read
             }

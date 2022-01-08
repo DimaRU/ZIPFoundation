@@ -152,17 +152,18 @@ public final class Archive: Sequence {
     ///   - preferredEncoding: Encoding for entry paths. Overrides the encoding specified in the archive.
     ///                        This encoding is only used when _decoding_ paths from the receiver.
     ///                        Paths of entries added with `addEntry` are always UTF-8 encoded.
+    ///   - zipFileCommentData: zip file comments
     /// - Returns: An archive initialized with a backing file at the passed in file URL and the given access mode
     ///   or `nil` if the following criteria are not met:
     /// - Note:
     ///   - The file URL _must_ point to an existing file for `AccessMode.read`.
     ///   - The file URL _must_ point to a non-existing file for `AccessMode.create`.
     ///   - The file URL _must_ point to an existing file for `AccessMode.update`.
-    public init?(url: URL, accessMode mode: AccessMode, preferredEncoding: String.Encoding? = nil) {
+    public init?(url: URL, accessMode mode: AccessMode, preferredEncoding: String.Encoding? = nil, zipFileCommentData: Data = Data()) {
         self.url = url
         self.accessMode = mode
         self.preferredEncoding = preferredEncoding
-        guard let config = Archive.makeBackingConfiguration(for: url, mode: mode) else {
+        guard let config = Archive.makeBackingConfiguration(for: url, mode: mode, zipFileCommentData: zipFileCommentData) else {
             return nil
         }
         self.archiveFile = config.file
@@ -184,13 +185,14 @@ public final class Archive: Sequence {
     ///   - preferredEncoding: Encoding for entry paths. Overrides the encoding specified in the archive.
     ///                        This encoding is only used when _decoding_ paths from the receiver.
     ///                        Paths of entries added with `addEntry` are always UTF-8 encoded.
+    ///   - zipFileCommentData: zip file comments
     /// - Returns: An in-memory archive initialized with passed in backing data.
     /// - Note:
     ///   - The backing `data` _must_ contain a valid ZIP archive for `AccessMode.read` and `AccessMode.update`.
     ///   - The backing `data` _must_ be empty (or omitted) for `AccessMode.create`.
-    public init?(data: Data = Data(), accessMode mode: AccessMode, preferredEncoding: String.Encoding? = nil) {
+    public init?(data: Data = Data(), accessMode mode: AccessMode, preferredEncoding: String.Encoding? = nil, zipFileCommentData: Data = Data()) {
         guard let url = URL(string: "\(memoryURLScheme)://"),
-            let config = Archive.makeBackingConfiguration(for: data, mode: mode) else {
+            let config = Archive.makeBackingConfiguration(for: data, mode: mode, zipFileCommentData: zipFileCommentData) else {
             return nil
         }
 

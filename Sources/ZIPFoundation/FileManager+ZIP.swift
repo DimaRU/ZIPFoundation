@@ -29,10 +29,11 @@ extension FileManager {
     ///                        By default, `zipItem` will create uncompressed archives.
     ///   - progress: A progress object that can be used to track or cancel the zip operation.
     ///   - forceDate: Set entry modification date in Archive.
+    ///   - zipFileCommentData: zip file comments
     /// - Throws: Throws an error if the source item does not exist or the destination URL is not writable.
     public func zipItem(at sourceURL: URL, to destinationURL: URL,
                         shouldKeepParent: Bool = true, compressionMethod: CompressionMethod = .none,
-                        progress: Progress? = nil, forceDate: Date? = nil) throws {
+                        progress: Progress? = nil, forceDate: Date? = nil, zipFileCommentData: Data = Data()) throws {
         let fileManager = FileManager()
         guard fileManager.itemExists(at: sourceURL) else {
             throw CocoaError(.fileReadNoSuchFile, userInfo: [NSFilePathErrorKey: sourceURL.path])
@@ -40,7 +41,7 @@ extension FileManager {
         guard !fileManager.itemExists(at: destinationURL) else {
             throw CocoaError(.fileWriteFileExists, userInfo: [NSFilePathErrorKey: destinationURL.path])
         }
-        guard let archive = Archive(url: destinationURL, accessMode: .create) else {
+        guard let archive = Archive(url: destinationURL, accessMode: .create, zipFileCommentData: zipFileCommentData) else {
             throw Archive.ArchiveError.unwritableArchive
         }
         let isDirectory = try FileManager.typeForItem(at: sourceURL) == .directory
